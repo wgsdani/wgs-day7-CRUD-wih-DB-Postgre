@@ -1,29 +1,70 @@
 const express = require('express');
 const app = express()
 const port = 3000
+// const expressLayouts = require('express-ejs-layouts');
 
 
 
 // View engine 'ejs'
 app.set('view engine','ejs')
+// app.use(expressLayouts);
 
 // mendefinisikan route path (/) yang merender index.html
 app.get('/',(req,res) => {
 	res.render('index', {
 		name : "Dani",
-		title : "Web Express"
+		title : "Web express EJS"
 	}),
 	res.status(200);
 });
 
 // mendefinisikan route path (/about) yang merender about.html
 app.get('/about',(req,res) => {
-	res.render('about');
+	res.render('about',{
+		title : "About - Web express EJS"
+	});
+	
 });
 
 // mendefinisikan route path (/contact) yang merender contact.html
 app.get('/contact',(req,res) => {
-	res.render('contact');
+	res.render('contact', {
+		title : "Contact - Web express EJS",
+	
+	cont :
+	[
+		{
+		id : 1,
+		name : 'Dani',
+		email : 'dani@gmail.com',
+		num :'0001'
+		},
+		{
+		id : 2,
+		name : 'Rona',
+		email : 'rona@gmail.com',
+		num :'0002'
+		},	
+		{
+		id : 3,
+		name : 'Arya',
+		email : 'arya@gmail.com',
+		num :'0003'
+		},
+		{
+		id : 4,
+		name : 'Yahya',
+		email : 'yahya@gmail.com',
+		num :'0004'
+		},
+		{
+		id : 5,
+		name : 'Iwan',
+		email : 'iwan@gmail.com',
+		num :'0005'
+		}
+]
+});
 });
 
 
