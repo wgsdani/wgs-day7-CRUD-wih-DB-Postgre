@@ -1,35 +1,38 @@
 const express = require('express');
 const app = express()
 const port = 3000
-// const expressLayouts = require('express-ejs-layouts');
+const expressLayouts = require('express-ejs-layouts');
 
 
 
 // View engine 'ejs'
 app.set('view engine','ejs')
-// app.use(expressLayouts);
+app.use(expressLayouts);
 
-// mendefinisikan route path (/) yang merender index.html
+
+
+// App Get for all
 app.get('/',(req,res) => {
 	res.render('index', {
 		name : "Dani",
-		title : "Web express EJS"
+		title : "Web express EJS",
+		layout: "layout/main",
 	}),
 	res.status(200);
 });
 
-// mendefinisikan route path (/about) yang merender about.html
 app.get('/about',(req,res) => {
 	res.render('about',{
-		title : "About - Web express EJS"
+		title : "About - Web express EJS",
+		layout: "layout/mainAbout",
 	});
 	
 });
 
-// mendefinisikan route path (/contact) yang merender contact.html
 app.get('/contact',(req,res) => {
 	res.render('contact', {
 		title : "Contact - Web express EJS",
+		layout: "layout/mainContact",
 	
 	cont :
 	[
@@ -67,21 +70,13 @@ app.get('/contact',(req,res) => {
 });
 });
 
-
-
 app.get('/product/:id',(req,res) => {
 	res.send('product id : '+ req.params.id <br> + req.query.kategori);
 });
 
 
-// app.get('/product/:id/?kategori',(req,res) => {
-// 	res.send('product id : '+ req.params.id +" "+ req.params.kategori);
-// });
+app.get('/')
 
-// mendefinisikan middleware test
-// app.use('/',(req, res)=>{
-// 	res.send('test');
-// });
 
 // mendefinisikan middleware jika page not found
 app.use('/',(req, res)=>{
