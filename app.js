@@ -11,8 +11,16 @@ const filepath ="./data/db.json"
 // View engine 'ejs'
 app.set('view engine','ejs')
 app.use(expressLayouts);
-app.use(express.urlencoded({ extended : false}));
+app.use(express.urlencoded({ extended : true}));
 app.use(express.json());
+// app.use(express.static('public'));
+
+const path = require('path')
+app.use('/public', express.static((__dirname, 'public')))
+
+// app.use((req, res) => {
+//   console.log('Time:', Date.now())
+// })
 
 
 // if (!fs.existsSync(folder)){
@@ -54,12 +62,12 @@ app.get('/',(req,res) => {
 	res.status(200);
 });
 
-app.get('/about',(req,res) => {
+app.get('/about',(req,res, next) => {
 	res.render('about',{
 		title : "About - Web express EJS",
 		layout: "layout/mainAbout",
 	});
-	
+	next()
 });
 
 app.get('/contact',(req,res) => {
