@@ -1,6 +1,7 @@
 const express = require('express');
 const app = express()
 const port = 3000
+const morgan = require('morgan');
 const expressLayouts = require('express-ejs-layouts');
 const fs = require ('fs');
 const {body, check, validationResult} = require('express-validator');
@@ -13,6 +14,7 @@ app.set('view engine','ejs')
 app.use(expressLayouts);
 app.use(express.urlencoded({ extended : true}));
 app.use(express.json());
+app.use(morgan('dev'));
 // app.use(express.static('public'));
 
 const path = require('path')
@@ -62,12 +64,11 @@ app.get('/',(req,res) => {
 	res.status(200);
 });
 
-app.get('/about',(req,res, next) => {
+app.get('/about',(req,res) => {
 	res.render('about',{
 		title : "About - Web express EJS",
 		layout: "layout/mainAbout",
 	});
-	next()
 });
 
 app.get('/contact',(req,res) => {
