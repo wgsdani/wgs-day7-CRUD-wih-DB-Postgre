@@ -6,7 +6,6 @@
 			justify-content: center;
 			border: 2px solid black;
 			padding:1px !important;
-			border-radius: 20px;
 			margin: 100px auto;			
 		}
 		
@@ -14,30 +13,29 @@
 
 
 
-		<% if (cont.length < 1) {%>
+		<% if (dbPath.length < 1) {%>
 			<p>Contact data is empty</p>
 			
 			<% }else { %>  
-<div class="container">
-	<section class="bg-light p-5">
+<div class="container mt-5">
+	<section class="bg-light p-5	">
 		<h3>Contact List</h3>
+		<a href="add"><button type="submit" class="btn btn-success mb-2">+Add</button></a>
 		<table class="table table-hover">
-		
 				<thead class="bg-dark text-light">
 					<tr>	
-						<th scope="col">ID 	</th>
-						<th scope="col">Name 	</th>
-						<th scope="col">Email	</th>
-						<th scope="col"> Number	</th>
+						<th scope="col">Name</th>
+						<th scope="col">Email</th>
+						<th colspan="2">Action</th>
 					</tr>
 			</thead>
 			<tbody class = "table-group-divider">
-			<% cont.forEach(c => { %> 
+			<% dbPath.forEach(c => { %> 
 				<tr>
-						<th scope="row"><%= c.id %></th>
 						<td><%= c.name %></td>
 						<td><%= c.email %></td>
-						<td><%= c.num %></td>
+						<td><a href="/contact/edit/<%=c.name %>"><button type="submit" class="btn btn-primary">Update</button></a> 
+								<a href="/delete/<%= c.name %>"><button type="submit" onclick="return confirm ('sure ?')" class="btn btn-danger">Delete</button></a></td>
 				</tr>	
 				<% }) %>
 			<% } %>

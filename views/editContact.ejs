@@ -1,0 +1,14 @@
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-iYQeCzEYFbKjA/T2uDLTpkwGzCiq6soy8tYaI1GyVh/UjpbCx/TYkiZhlZB6+fzT" crossorigin="anonymous">
+
+
+<div class="container mt-5">
+
+		<form action="/contact/update" method="post">
+		<input name="oldname" type="hidden" value="<% (contact.oldname || contact.name) %>">
+		<input type="name" type="text" value="<%= contact.name %>" placeholder="name">
+		<input type="email" type="email" value="<%= contact.email %>" placeholder="email">
+
+		<button type="submit"> Save</button>
+	
+	</form>
+</div>
