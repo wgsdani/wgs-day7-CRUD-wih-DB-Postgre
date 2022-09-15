@@ -1,47 +1,45 @@
 <!-- File HTML untuk mengisi data 'Contact' -->
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-iYQeCzEYFbKjA/T2uDLTpkwGzCiq6soy8tYaI1GyVh/UjpbCx/TYkiZhlZB6+fzT" crossorigin="anonymous">
-<link rel="stylesheet" href="../public/assets/css/style.css">
-<style>
-		.section{
-			display: flex;
-			justify-content: center;
-			border: 2px solid black;
-			padding:1px !important;
-			margin: 100px auto;			
-		}
-		
-</style>
-
-
-
-		<% if (dbPath.length < 1) {%>
-			<p>Contact data is empty</p>
-			
-			<% }else { %>  
+<!-- Content -->
 <div class="container mt-5">
-	<section class="bg-light p-5	">
-		<h3>Contact List</h3>
-		<a href="add"><button type="submit" class="btn btn-success mb-2">+Add</button></a>
-		<table class="table table-hover">
-				<thead class="bg-dark text-light">
-					<tr>	
-						<th scope="col">Name</th>
-						<th scope="col">Email</th>
-						<th colspan="2">Action</th>
-					</tr>
-			</thead>
-			<tbody class = "table-group-divider">
-			<% dbPath.forEach(c => { %> 
-				<tr>
-						<td><%= c.name %></td>
-						<td><%= c.email %></td>
-						<td><a href="/contact/edit/<%=c.name %>"><button type="submit" class="btn btn-primary">Update</button></a> 
-								<a href="/delete/<%= c.name %>"><button type="submit" onclick="return confirm ('sure ?')" class="btn btn-danger">Delete</button></a></td>
-				</tr>	
-				<% }) %>
-			<% } %>
-				</tbody>	
-		</table>
-	</section>
-</div>
-		<%- include('layout/footer') %>
+	<h1 class="text-center">Contact</h1>
+	<hr>
+	  <!-- Flash Message  -->
+	  <% if (msg.length !== 0) { %>
+		<div class="alert alert-success" role="alert">
+		  <%= msg %> 
+		</div>
+	  <% } %>
+  
+	  <a href="/contact/add" class="btn btn-secondary mb-2">+ Add</a>
+	  <table class="table table-dark table-hover	">
+		<thead>
+		  <tr style="background-color: #C3F8FF;">
+			<th scope="col">No</th>
+			<th scope="col">Name</th>
+			<th scope="col">Mobile</th>
+			<th scope="col">Action</th>
+		  </tr>
+		</thead>
+		<!-- Cek Jika data Kosong -->
+		<% if (contacts.length <1) { %>
+		<tbody>
+			<tr>
+			  <td colspan="4">
+				<div class="alert alert-danger" role="alert">Data Contact Empty</div>
+			  </td>
+			</tr>
+		  <% } else {%>
+		  <% contacts.forEach((contact,i) => { %>
+		  <tr>
+			<th><%= i+1 %></th>
+			<td><%= contact.name %></td>
+			<td><%= contact.mobile %></td>
+			<td>
+			  <a href="/contact/<%= contact.name %>" class="btn btn-light badge circle" style="color: #000;">Detail</a>
+			</td>
+		  </tr>
+		  <% }); %>
+		</tbody>
+		<% }; %>
+	  </table>
+  </div>

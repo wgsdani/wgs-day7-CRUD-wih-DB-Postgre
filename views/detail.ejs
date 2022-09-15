@@ -1,0 +1,20 @@
+<div class="container">
+    <!-- Cek Jika Data Contact Tidak Ada -->
+    <% if (!contact) { %>
+      <div class="alert alert-danger fw-bold mt-3" role="alert">
+          Data Contact tidak ada. <br> 
+      </div>
+  <% } else { %>
+      <div class="card mt-3" style="width: 24rem;">
+        <a href="/contact" <button type="button" class="btn-close"  disabled aria-label="Close"></button></a>
+          <div class="card-body">
+            <h5 class="card-title">Detailed contact</h5> <br>
+            <h6 class="card-subtitle text-muted"> Name : <%= contact.name %></h6>
+            <h6 class="card-subtitle text-muted"> Email : <%= contact.email %></h6>
+            <h6 class="card-subtitle text-muted"> Mobile  : <%= contact.mobile %></h6><br>
+            <a href="/contact/delete/<%= contact.name %>" onclick="return confirm('Are u sure to Delete the data?');"  class="btn btn-danger badge"  style="float: right ; margin-left: 2px;">Delete</a>
+            <a href="/contact/edit/<%= contact.name %>" class="btn btn-success badge"  style="float: right ;">Edit</a>
+          </div>
+        </div>
+  <% } %> 
+  </div>

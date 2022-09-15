@@ -1,243 +1,195 @@
-const express = require('express');
-const app = express()
-const port = 3000
+const express = require("express"); // Module Express
+const expressLayouts = require("express-ejs-layouts"); // Module Layout EJS
+const { body, validationResult, check } = require('express-validator'); // Express Validator
 const morgan = require('morgan');
-const expressLayouts = require('express-ejs-layouts');
-const fs = require ('fs');
-const {body, check, validationResult} = require('express-validator');
-const validator = require('validator');
-const folder ='/data'
-const filepath ="./data/db.json"
+const session = require('express-session');
+const cookieParser = require('cookie-parser');
+const flash = require('connect-flash');
+const app = express();
+const pool = require('./db')
 
-// View engine 'ejs'
-app.set('view engine','ejs')
+const { 
+  loadContact, 
+  findContact, 
+  addContact, 
+  cekDuplikat, 
+  deleteContact, 
+  updateContact 
+}= require('./utils/contacts'); // Local Module
+
+
+
+//Port Server
+const port = 3000; 
+// Templating Engine | Layout Page
+app.set("view engine", "ejs");
 app.use(expressLayouts);
-app.use(express.urlencoded({ extended : true}));
-app.use(express.json());
-app.use(morgan('dev'));
-// app.use(express.static('public'));
+app.use('/public', express.static(__dirname + '/public')); // Middleware untuk public(img,css)
+app.use(express.urlencoded({ extended: true })); // Untuk parsing body request
+app.use(morgan('dev')); // Middleware Morgan di log
 
-const path = require('path')
-app.use('/public', express.static((__dirname, 'public')))
+app.use(cookieParser('secret'));
+app.use(
+    session({
+        cookie: { maxAge: 6000 },
+        secret: 'secret',
+        resave: true,
+        saveUninitialized: true,
+    })
+);
+app.use(flash());
 
-// app.use((req, res) => {
+// Level MiddleWare
+// app.use((req, res, next) => {
 //   console.log('Time:', Date.now())
-// })
+//   next();
+// });
 
 
-// if (!fs.existsSync(folder)){
-// 	fs.mkdirSync(folder)
-// }
+//================================================================================================== 
 
-// if (!fs.existsSync(filepath)){
-// 	fs.writeFileSync(filepath,'[]')
-// }
-
-const cekDuplikat = (name) => {
-	const contacts = getUserData();
-	return contacts.find((contact) => contact.name === name);
-};
-
-const saveUserData = (data) =>{
-	const stringifyData =JSON.stringify(data)
-	fs.writeFileSync('data/db.json', stringifyData)
-};
-const getUserData = () => {
-	const jsonData = fs.readFileSync('data/db.json')
-	return JSON.parse(jsonData)
-};
-
-const findContact = (name) => {
-	const contacts = getUserData();
-	const contact = contacts.find((contact) => contact.name === name);
-};
-
-
-
-// App Get for all
-app.get('/',(req,res) => {
-	res.render('index', {
-		name : "Dani",
-		title : "Web express EJS",
-		layout: "layout/main",
-	}),
-	res.status(200);
+// Menampilkan FIle index.html
+app.get('/', (req, res) => {
+  res.render('index', {
+    nama: 'Dani',
+    title: 'Home',
+    layout: 'layouts/main-layouts'
+  });
 });
 
-app.get('/about',(req,res) => {
-	res.render('about',{
-		title : "About - Web express EJS",
-		layout: "layout/mainAbout",
-	});
+// Menampilkan File about.html
+app.get('/about', (req, res) => {
+  res.render('about', { 
+    nama: 'Dani',
+    deskripsi: 'Peserta Bootcamp Batch #3',
+    title: 'About Page',
+    layout: 'layouts/main-layouts' 
+  });
 });
 
-app.get('/contact',(req,res) => {
-	const dbPath = require ('./data/db.json');
-	res.render('contact', {
-		title : "Contact - Web express EJS",
-		layout: "layout/mainContact",
-		dbPath,
-});
+// Menampilkan Data Contact
+app.get('/contact', async(req, res) => {
+  const contacts = await loadContact();
+//   console.log("asdasd",contacts);
+  res.render('contact', {
+    title: 'Contact Page',
+    layout: 'layouts/main-layouts',
+    contacts : contacts,
+    msg: req.flash('msg')
+  });
 });
 
-app.get('/add', (req, res) => {
-	res.render ('add', {
-		title : " AddContact - Web express EJS",
-		layout:"layout/mainAdd",
-	});
+// Menambah Data Contact
+app.get('/contact/add', (req, res) => {
+  res.render('add', {
+    title: 'Add Page',
+    layout: 'layouts/main-layouts'
+  });
 });
-app.get('/contact/edit/:name',(req,res) => {
-	const contact = req.params
-	const oldname = req.params.oldname;
-	const dbPath = require ('./data/db.json');
-	res.render('editContact',{
-		title : "Edit Contact - Web express EJS",
-		layout: "layout/mainEditContact",
-		contact,
-		dbPath,
-		oldname,
 
-	});
+// ================================================================================================
+
+// Proses Menyimpan Data Contact
+app.post('/contact', [
+  body('nama').custom(async(value) => {
+      const duplikat = await cekDuplikat(value);
+	//   console.log("asdasd", duplikat);
+      if(duplikat) {
+        throw Error('Sorry, contact has already exist .');
+    }
+      return true;
+    }),
+  check('email', 'Email not Valid').isEmail(),
+  check('mobile', 'Mobile not Valid').isMobilePhone('id-ID') ], (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.render('add', {
+        title: 'Add Page',
+        layout: 'layouts/main-layouts',
+        errors: errors.array()
+      });
+    } else {
+      addContact(req.body.name, req.body.mobile, req.body.email);
+      req.flash('msg', 'Successed insert data!');
+      res.redirect('/contact');
+    }
+});
+
+// Menghapus Data Contact
+app.get('/contact/delete/:nama', async(req, res) => {
+//   const contact = findContact(req.params.nama);
+//   if(!contact) {
+//     return res.send('Sorry contact name has not already!');
+//   }
+  await deleteContact(req.params.nama);
+  req.flash('msg', 'Successed deleted data!');
+  res.redirect('/contact');
+});
+
+// Mengedit Data
+app.get('/contact/edit/:nama', async(req, res) => {
+  const contact = await findContact(req.params.nama);
+  res.render('editContact', {
+    title: 'Edit Page',
+    layout: 'layouts/main-layouts',
+    contact : contact
+  });
+});
+
+//proses Mengubah Data contact
+app.post('/contact/update', [
+  body('nama').custom(async(value, { req }) => {
+      const duplikat = await cekDuplikat(value);
+      if (value !== req.body.oldNama && duplikat) {
+          throw new Error('Name has already exist!');
+      }
+      return true;
+  }),
+  check('email', 'Email not valid!').isEmail(),
+  check('mobile', 'Mobile not valid!').isMobilePhone('id-ID')
+  ], (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        res.render('editContact', {
+            title: "ExpressJS",
+            layout: "layouts/main-layouts",
+            errors: errors.array(),
+            contact: req.body,
+        });
+    } else{
+        updateContact (req.body.oldNama, req.body.name, req.body.mobile, req.body.email);
+        req.flash('msg', 'Contact has been updated!');
+        res.redirect('/contact');
+    }
+});
+
+
+// Detail Contact Berdasarkan Nama
+app.get('/contact/:nama', async(req, res) => {
+  const contact = await findContact(req.params.nama);
+  console.log("asdasd",contact);
+  res.render('detail', {
+    title: 'Detail Page',
+    layout: 'layouts/main-layouts',
+    contact : contact
 	
-
-
-});
-// ==============================================================================
-
-// App Post 
-app.post('/add', [
- 
-	body('name').custom((value) => {
-		const duplikat = cekDuplikat(value);
-		if (duplikat) {
-			throw new Error('Data already used!');
-		}
-		return true;
-	}),
-
-	check('email', 'Email doesnt valid!').isEmail(),
-
- 
-],
-(req, res) => {
-	const errors = validationResult(req);
-	if (!errors.isEmpty()) {
-			res.render('add', {
-				isActive: 'home',
-				layout: 'layout/mainAdd',
-				title: 'Add Contact-Web Express',
-				errors: errors.array(),
-			});
-		} else {
-	const existUsers = getUserData()
-
-	const data = req.body
-
-	const userData = JSON.stringify(data)
-	console.log("com",userData);
-	datass = JSON.parse(userData)
-
-	if (datass.name == null || datass.email == null ) {
-			return res.status(401).send({error: true, msg: 'User data missing'})
-	}
-	
-	const findExist = existUsers.find( user => user.name === userData.name )
-	if (findExist) {
-			return res.status(409).send({error: true, msg: 'username already exist'})
-	}
-
-	
-	existUsers.push(datass)
-
-	saveUserData(existUsers);
-res.redirect('/contact')
-}
+  });
 });
 
+// Connection Database
 
-// App Update
-app.post('/contact/update',[
-
-	body('name').custom((value,{req}) => {
-		const duplikat = cekDuplikat(value);
-		if (value !== req.body.oldNama && duplikat) {
-			throw new Error('Data already used!');
-		}
-		return true;
-	}),
-
-	check('email', 'Email doesnt valid!').isEmail(),
-
- 
-],
-(req, res) => {
-	const errors = validationResult(req);
-	if (!errors.isEmpty()) {
-			res.render('editContact', {
-				isActive: 'home',
-				layout: 'layout/mainEditContact',
-				title: 'Update Contact',
-				errors: errors.array(),
-				contact: req.body
-			});
-		} else {
-
-
-	const username = req.params.name
-	const existUsers = getUserData()
-	const data = req.body
-	const userData = JSON.stringify(data)
-
-
-	const findExist = existUsers.find( user => user.name === username )
-	// console.log('log',username);
-	
-	if (!findExist) {
-			return res.status(409).send({error: true, msg: 'username not exist'})
-	}
-
-	const updateUser = existUsers.filter( user => user.name !== username )
-
-	datass = JSON.parse(userData)  
-	updateUser.push(datass)
-
-	saveUserData(updateUser)
-
- res.redirect('/contact')
-}
-});
-
-
-// App Delete
-app.get('/delete/:name', (req, res) => {
-	const name = req.params.name
-
-	const existUsers = getUserData()
-
-	// console.log("coba",existUsers);
-
-	const filterUser = existUsers.filter( user => user.name !== name )
-	if ( existUsers.length === filterUser.length ) {
-			return res.status(409).send({error: true, msg: 'username does not exist'})
-	}
-
-	saveUserData(filterUser)
-	
-	res.redirect('/contact')
-	
-});
-
-// mendefinisikan middleware jika page not found
-app.use('/',(req, res)=>{
-	res.send('Page Not Found : 404');
-	res.status(404);
-});
-
-
-
-
-
-// Server Port 
-app.listen (3000,()=>{
-	console.log(`Server has listening on port${port}`);
+app.get("/addasync", async(req,res)=>{
+    try {
+        const name = "dani"
+        const mobile = "0896988449"
+        const email = "dani@email.com"
+        const newCount = await pool.query(`INSERT INTO tb_contacts VALUES('${name}','${mobile}','${email}') RETURNING *`)
+        res.json(newCount)
+    } catch (err) {
+        console.log(err.message);
+    }
+})
+// Server Port
+app.listen(port, () => {
+  console.log(`Server is running at ${port}`);
 });
